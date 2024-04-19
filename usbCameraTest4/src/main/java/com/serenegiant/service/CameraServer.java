@@ -23,6 +23,7 @@
 
 package com.serenegiant.service;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
@@ -202,8 +203,13 @@ public final class CameraServer extends Handler {
 
 	public void captureStill(final String path) {
 		if (mRendererHolder != null) {
-			mRendererHolder.captureStill(path);
-			sendMessage(obtainMessage(MSG_CAPTURE_STILL, path));
+			try{
+				mRendererHolder.captureStill(path);
+				sendMessage(obtainMessage(MSG_CAPTURE_STILL, path));
+			}
+			catch (FileNotFoundException e){
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -213,12 +219,13 @@ public final class CameraServer extends Handler {
 		try {
 			final int n = mCallbacks.beginBroadcast();
 			for (int i = 0; i < n; i++) {
-				if (!((CallbackCookie)mCallbacks.getBroadcastCookie(i)).isConnected)
-				try {
-					mCallbacks.getBroadcastItem(i).onConnected();
-					((CallbackCookie)mCallbacks.getBroadcastCookie(i)).isConnected = true;
-				} catch (final Exception e) {
-					Log.e(TAG, "failed to call IOverlayCallback#onFrameAvailable");
+				if (!((CallbackCookie)mCallbacks.getBroadcastCookie(i)).isConnected){
+					try {
+						mCallbacks.getBroadcastItem(i).onConnected();
+						((CallbackCookie)mCallbacks.getBroadcastCookie(i)).isConnected = true;
+					} catch (final Exception e) {
+						Log.e(TAG, "failed to call IOverlayCallback#onFrameAvailable");
+					}
 				}
 			}
 			mCallbacks.finishBroadcast();
@@ -231,12 +238,13 @@ public final class CameraServer extends Handler {
 		if (DEBUG) Log.d(TAG, "processOnCameraStop:");
 		final int n = mCallbacks.beginBroadcast();
 		for (int i = 0; i < n; i++) {
-			if (((CallbackCookie)mCallbacks.getBroadcastCookie(i)).isConnected)
-			try {
-				mCallbacks.getBroadcastItem(i).onDisConnected();
-				((CallbackCookie)mCallbacks.getBroadcastCookie(i)).isConnected = false;
-			} catch (final Exception e) {
-				Log.e(TAG, "failed to call IOverlayCallback#onDisConnected");
+			if (((CallbackCookie)mCallbacks.getBroadcastCookie(i)).isConnected){
+				try {
+					mCallbacks.getBroadcastItem(i).onDisConnected();
+					((CallbackCookie)mCallbacks.getBroadcastCookie(i)).isConnected = false;
+				} catch (final Exception e) {
+					Log.e(TAG, "failed to call IOverlayCallback#onDisConnected");
+				}
 			}
 		}
 		mCallbacks.finishBroadcast();
