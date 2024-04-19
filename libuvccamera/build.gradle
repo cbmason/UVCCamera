@@ -26,7 +26,6 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 android {
 	compileSdkVersion versionCompiler
-	buildToolsVersion versionBuildTool
 
 	compileOptions {
 		sourceCompatibility javaSourceCompatibility
@@ -35,8 +34,19 @@ android {
 
     defaultConfig {
         minSdkVersion 14
+
 		targetSdkVersion versionTarget
+		externalNativeBuild {
+			ndkBuild {
+				arguments "NDK_APPLICATION_MK:=src/main/jni/Application.mk"
+			}
+		}
     }
+	externalNativeBuild {
+		ndkBuild {
+			path "src/main/jni/Android.mk"
+		}
+	}
 
     buildTypes {
         release {
@@ -52,11 +62,11 @@ android {
 	}
 }
 
-tasks.withType(JavaCompile) {
+/*tasks.withType(JavaCompile) {
 	compileTask -> compileTask.dependsOn ndkBuild
-}
+}*/
 
-String getNdkBuildPath() {
+/*String getNdkBuildPath() {
 	Properties properties = new Properties()
 	properties.load(project.rootProject.file('local.properties').newDataInputStream())
 	def ndkBuildingDir = properties.getProperty("ndk.dir")
@@ -81,7 +91,7 @@ task ndkClean(type: Exec, description: 'clean JNI libraries') {
 	commandLine ndkBuildPath, 'clean', '-C', file('src/main').absolutePath
 }
 
-clean.dependsOn 'ndkClean'
+clean.dependsOn 'ndkClean'*/
 
 dependencies {
     implementation fileTree(dir: new File(buildDir, 'libs'), include: '*.jar')
